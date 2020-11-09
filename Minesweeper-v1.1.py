@@ -154,6 +154,18 @@ def revealTile(row, column):
 
         
 
+# show mine locations                 
+def revealMines():
+        for row in range(size):
+                for column in range(size):
+                        
+                        if board[row][column] == -1: 
+                                mines_locations[row][column] = '*'
+                                
+                                
+                                
+
+
 # check game state
 def gameCheck():
 
@@ -164,9 +176,9 @@ def gameCheck():
         #check each cell
         for row in range(size):
                 for column in range(size):
-                        #if revealed and not flagged
-                        if mines_locations[row][column] != ' ' and mines_locations[row][column] != 'F':
-                                revealed_numbers += 1
+                        #if revealed and not flagged and not sus
+                        if mines_locations[row][column] != ' ' and mines_locations[row][column] != 'F' and mines_locations[row][column] != '?':
+                                revealed_numbers += 1   #increment revealed tiles
 
         # check if all non-mine tiles are found        
         if revealed_numbers == size * size - number_mines:
@@ -174,13 +186,7 @@ def gameCheck():
         else:
                 return False
 
-# show mine locations                 
-def revealMines():
-        for row in range(size):
-                for column in range(size):
-                        
-                        if board[row][column] == -1: 
-                                mines_locations[row][column] = '*'
+
 
 
 
@@ -192,9 +198,17 @@ if __name__ == "__main__":
 
         # instructions and board setup inputs
         welcome = "Welcome to Minesweeper"
-        print (welcome.rjust(50, ' ' ))      
-        size = int(input("Enter size of board: "))
-        number_mines = int(input("Enter number of mines: "))
+        print (welcome.rjust(50, ' ' ))
+        integer = False
+        while integer == False:
+                try: 
+                        size = int(input("\nEnter size of board: "))
+                        number_mines = int(input("\nEnter number of mines: "))
+                        integer = True
+                except ValueError:
+                        print("\nPlease enter size and number of mines in integers only!")
+                        continue       
+        
         
         # initiating the board
         board = [[0 for y in range(size)] for x in range(size)] 
@@ -203,6 +217,9 @@ if __name__ == "__main__":
         
         # flagged tiles
         flags = []
+        
+        #question mark suspected tiles
+        questionMark = []
         
         # plant mines
         minePlacer()
@@ -221,7 +238,26 @@ if __name__ == "__main__":
                 printBoard()
 
                 # Input from the user
-                move = input("\nInstructions:\n 1. Enter row and column to select the cell.Input format example: 1 2 \n 2. To flag a mine,enter flag after row and column.Input format example: 1 2 flag \n 3. To unflag,enter unflag after row and column.Input format example: 1 2 unflag \nInput : ").split()
+                move = input("\nInstructions:\n 1. Enter row and column to select the tile.Input format example: 1 2 \
+                \n 2. To flag a tile,enter flag after row and column.Input format example: 1 2 flag \
+                \n 3. To unflag a flagged tile,enter unflag after row and column.Input format example: 1 2 unflag \
+                \n 4. To sus a tile,enter sus after row and column.Input format example: 1 2 sus \
+                \n 5. To unsus a sus tile,enter unsus after row and column.Input format example: 1 2 unsus \
+                \n 6. Type r to reset current board. \
+                \n 7. Type q to quit. \
+                \nInput : ").split()
+                
+                
+                #quit game
+                if move[0] == 'q':
+                        play = False
+                        
+                #reset current board
+                if move[0] == 'r': 
+                        mines_locations = [[' ' for y in range(size)] for x in range(size)]
+                        searched.clear()
+                        flags.clear()
+                        questionMark.clear()
 
                 #check if numerical input or not
                 if len(move) == 2:
@@ -232,10 +268,10 @@ if __name__ == "__main__":
                                 continue
                                 
                         
-                # input with flag/unflag
+                # input with flag/unflag or sus/unsus
                 elif len(move) == 3:
-                        if  move[2] != 'flag' and move[2] != 'unflag':
-                                print("\nthird command flag or unflag only!")
+                        if  move[2] != 'flag' and move[2] != 'unflag' and move[2] != 'sus' and move[2] != 'unsus':
+                                print("\nthird command flag,unflag,sus or unsus only!")
                                 continue
 
 
@@ -263,44 +299,75 @@ if __name__ == "__main__":
                         row = tile[0]-1
                         column = tile[1]-1 
                         
-                                
+                        #dont flag already flagged tile       
                         if [row, column] in flags and mark != 'unflag':
-                                print("\nAlready flagged")
+                                print("\nAlready flagged.\nUnflag first to sus.")
                                 continue
                         
 
+                        
                         # if already revealed
-                        if mines_locations[row][column] != ' ' and mark != 'unflag':
+                        #if mines_locations[row][column] != ' ' and mark != 'unflag' and mark != 'unsus':
+                                #print("\nValue already known")
+                                #continue
+                        
+                        
+                        #dont sus already sus tile
+                        if [row, column] in questionMark and mark != 'unsus':
+                                print("\nAlready sus.\nUnsus first to flag.")
+                                continue                        
+                        
+                        # if already revealed
+                        if mines_locations[row][column] != ' ' and mines_locations[row][column] != '?' and mines_locations[row][column] != 'F':
                                 print("\nValue already known")
                                 continue
+                        
+                        
+                        if [row, column] in questionMark and mark == 'unsus' :
+                                print("\nUnsus tile")
+                                mines_locations[row][column] = ' '
+                                for item in questionMark:
+                                        i = 0
+                                        if item[i] == row:
+                                                if item[i+1] == column:
+                                                        questionMark.remove([row,column]) 
+                                                        
+                        
+                        if mark == 'sus' and [row, column] not in flags:
+                                questionMark.append([row, column])
+                                mines_locations[row][column] = '?'
+                                print("\nSus tile")                        
+                        
+                        
+                        
+                        if [row, column] in flags and mark == 'unflag' :
+                                print("\nUnflagged tile")
+                                mines_locations[row][column] = ' '
+                                for item in flags:
+                                        i = 0
+                                        if item[i] == row:
+                                                if item[i+1] == column:
+                                                        flags.remove([row,column])                        
 
 
 
-
-                        # check to make sure flags = bombs
-                        if len(flags) < number_mines:
-                                
-                                
-                                if [row, column] in flags and mark == 'unflag' :
-                                        print("\nUnflagged")
-                                        mines_locations[row][column] = ' '
-                                        for item in flags:
-                                                i = 0
-                                                if item[i] == row:
-                                                        if item[i+1] == column:
-                                                                flags.remove([row,column])
+                        # check to make sure number of flags = bombs
+                        if len(flags) < number_mines :
                                                                       
-                                elif mark == 'flag':
+                                if mark == 'flag' and [row, column] not in questionMark:
                                         flags.append([row, column])
                                         mines_locations[row][column] = 'F'
-                                        print("\nFlag set")
+                                        print("\nFlagged tile")
                                 continue
                         else:
-                                print("\nNo more flags.Number of flags = Number of mines!")
+                                if mark != 'sus' and mark != 'unsus':
+                                        print("\nNo more flags.Number of flags = Number of mines!")
                                 continue    
 
                 else: 
-                        print("\nInstructions:\n 1. Enter row and column to select the cell.Input format example: 1 2 \n 2. To flag a mine,enter flag after row and column.Input format example: 1 2 flag \n 3. To unflag,enter unflag after row and column.Input format example: 1 2 unflag")   
+                        
+                        if move[0] != 'r' and move[0] != 'q':
+                                print("\nInvalid input")   
                         continue
 
 
@@ -316,7 +383,7 @@ if __name__ == "__main__":
 
                 row = tile[0]-1
                 column = tile[1]-1
-
+               
 
                 # if stepped on mine,game over  
                 if board[row][column] == -1:
@@ -325,7 +392,7 @@ if __name__ == "__main__":
                         printBoard()
                         print("\nGame over.stepped on a mine!!!")
                         play = False
-                        continue
+                        
 
                 # no mines in neighbouring cells,reveal neighbours
                 elif board[row][column] == 0:
@@ -344,8 +411,10 @@ if __name__ == "__main__":
                         printBoard()
                         print("\nYou won!!")
                         play = False
-                        continue
+                        
         
         #end timer
         end = time.time()
-        print("\nTimespent in seconds = ",end - start)
+        
+        #print(end - start) #exact time in floating point
+        print("\nTimespent = %d second(s)" %round(end - start))
