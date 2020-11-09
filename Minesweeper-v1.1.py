@@ -11,6 +11,7 @@ size = 0
 board = []
 mines_locations=[]
 number_mines = 0
+marked_mines = 0
 searched = []
 
 
@@ -52,6 +53,8 @@ def printBoard():
                         cell = cell + "|_____"
                 print(cell + '|')
 
+        print("\n\n Number of remaining mines: ", (number_mines - marked_mines))
+
 
 
         
@@ -71,6 +74,7 @@ def minePlacer():
                         board[row][column] = -1
                         
                         i += 1
+
 
 
 
@@ -347,7 +351,8 @@ if __name__ == "__main__":
                                         i = 0
                                         if item[i] == row:
                                                 if item[i+1] == column:
-                                                        flags.remove([row,column])                        
+                                                        flags.remove([row,column])
+                                                        marked_mines -= 1                        
 
 
 
@@ -357,6 +362,7 @@ if __name__ == "__main__":
                                 if mark == 'flag' and [row, column] not in questionMark:
                                         flags.append([row, column])
                                         mines_locations[row][column] = 'F'
+                                        marked_mines += 1
                                         print("\nFlagged tile")
                                 continue
                         else:
