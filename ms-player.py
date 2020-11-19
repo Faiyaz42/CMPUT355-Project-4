@@ -5,6 +5,7 @@
 
 import random
 import time
+import itertools
 import sys
 
 # Minesweeper Layout
@@ -274,6 +275,80 @@ def logic_calc(row, column):
                 return -1, -1, False
         return -1, -1, False
 
+def find_sections():
+
+        h_border_tiles = []
+        h_tiles = []
+        border_tiles = []
+
+        for row in range(size):
+                for column in range(size):
+                        #find all border tiles
+                        if [row, column] not in completed_tiles and [row, column] in searched and mines_locations[row][column] != 0:
+                                border_tiles.append([row, column])
+                                # find all hidden bording tiles (not including flagged tiles)
+                                # up
+                                if row > 0 and [row-1,column] not in searched:
+                                        if mines_locations[row-1][column] != 'F':
+                                                h_border_tiles.append([row-1,column])
+                                # down
+                                if row < size-1  and [row+1,column] not in searched:
+                                        if mines_locations[row+1][column] == 'F':
+                                                h_border_tiles.append([row+1,column])
+                                # left
+                                if column > 0 and [row,column-1] not in searched:
+                                        if mines_locations[row][column-1] == 'F':
+                                                h_border_tiles.append([row,column-1])
+                                # right
+                                if column < size-1 and [row,column +1] not in searched:
+                                        if mines_locations[row][column +1] == 'F':
+                                                h_border_tiles.append([row,column +1])
+                                # top-left
+                                if row > 0 and column > 0 and [row-1,column -1] not in searched:
+                                        if mines_locations[row-1][column -1] == 'F':
+                                                h_border_tiles.append([row-1,column -1])
+                                # top-right
+                                if row > 0 and column < size-1 and [row-1,column+1] not in searched:
+                                        if mines_locations[row-1][column+1] == 'F':
+                                                h_border_tiles.append([row-1,column+1])
+                                # below-left
+                                if row < size -1 and column > 0 and [row+1,column-1] not in searched:
+                                        if mines_locations[row+1][column-1] == 'F':
+                                                h_border_tiles.append([row+1,column-1])
+                                # below-right
+                                if row < size-1 and column < size -1 and [row+1,column +1] not in searched:
+                                        if mines_locations[row+1][column +1] == 'F':
+                                                h_border_tiles.append([row+1,column +1])
+
+
+        for row in range(size):
+                for column in range(size):
+                        if [row, column] not in searched and [row, column] not in h_border_tiles:
+                                h_tiles.append([row, column])
+
+
+        ##################################
+        # THIS IS THE PLACE TO SEGRAGATE #
+        ##################################
+
+
+        full_combo_lst = []
+
+        for n in range(1,len(h_border_tiles)+1):
+                combo_lst = list(itertools.combinations(lst, n))
+                for i in combo_lst:
+                        full_combo_lst.append(i)
+
+
+        ####################################
+        # THIS IS THE PLACE TO CHECK LEGAL #
+        ####################################
+
+        ####################################
+        # THIS IS THE PLACE TO COUNT BOMBS #
+        ####################################
+
+
 def find_move(firstmove):
 
         if firstmove:
@@ -288,6 +363,15 @@ def find_move(firstmove):
                         move_row, move_column, flag = logic_calc(row, column)
                         if move_row != -1:
                             return move_row, move_column, flag
+
+        h_border_tiles = []
+        h_tiles = []
+        border_tiles = []
+
+        find_sections()
+
+
+
 
         sys.exit(0)
 
