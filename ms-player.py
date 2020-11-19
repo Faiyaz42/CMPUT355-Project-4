@@ -335,7 +335,7 @@ def find_sections():
         full_combo_lst = []
 
         for n in range(1,len(h_border_tiles)+1):
-                combo_lst = list(itertools.combinations(lst, n))
+                combo_lst = list(itertools.combinations(h_border_tiles, n))
                 for i in combo_lst:
                         full_combo_lst.append(i)
 
