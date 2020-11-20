@@ -445,8 +445,8 @@ def find_sections():
                 best_tile = bomb_lst[0][0]
                 best_tile_percent = bomb_lst[0][1] / len(legal_combo_lst)
         else:
-                n = random.randint(0, len(h_tiles)-1)
-                return h_tiles[n][0], h_tiles[n][1], False
+                n = random.randint(0, len(h_border_tiles)-1)
+                return h_border_tiles[n][0], h_border_tiles[n][1], False
 
         ####################################
         # NON BORDER BOMB ODDS #
