@@ -30,6 +30,8 @@ number_mines = 0
 marked_mines = 0
 searched = []
 
+completed_tiles = []
+
 
 #board layout
 def printBoard():
@@ -213,7 +215,7 @@ def gameCheck():
 ####################### PLAYER #######################
 ######################################################
 
-completed_tiles = []
+
 
 def logic_calc(row, column):
         flagged_tiles = []
@@ -337,7 +339,7 @@ def find_sections():
         #find all non-border hidden tiles
         for row in range(size):
                 for column in range(size):
-                        if [row, column] not in searched and [row, column] not in h_border_tiles:
+                        if [row, column] not in searched and [row, column] not in h_border_tiles and mines_locations[row][column] != 'F':
                                 h_tiles.append([row, column])
 
 
@@ -345,11 +347,17 @@ def find_sections():
         # THIS IS THE PLACE TO SEGRAGATE #
         ##################################
 
+        guess_mines = 0
+
+        for n in border_tiles:
+            guess_mines += mines_locations[n[0]][n[1]]
 
         full_combo_lst = []
 
-        for n in range(1,len(h_border_tiles)+1):
+        #for n in range(1,len(h_border_tiles)+1):
+        for n in range(1,guess_mines+1):
                 combo_lst = list(itertools.combinations(h_border_tiles, n))
+                
                 for i in combo_lst:
                         full_combo_lst.append(i)
 
@@ -400,17 +408,29 @@ def find_sections():
                                         count += 1
 
                         # check if tile is legal
-                        if mines_locations[row][column] != count:
-                            legal = False
-                            break
+                        if mines_locations[row][column] != count or count > (number_mines - marked_mines):
+                                legal = False
+                                break
 
                 if legal:
-                    legal_combo_lst.append(combo)
+                        legal_combo_lst.append(combo)
 
         ####################################
         # COUNT BOMBS #
         ####################################
 
+        # first check if any places there are no bombs
+        bomb_lst = []
+
+        for tiles in legal_combo_lst:
+                for tile in tiles:
+                    bomb_lst.append(tile)
+
+        for tile in h_border_tiles:
+            if tile not in bomb_lst:
+                return tile[0], tile[1], False
+
+        # if all places have a chance to have a bomb then sort by lowest chance
         bomb_lst = []
 
         for tiles in legal_combo_lst:
@@ -420,8 +440,13 @@ def find_sections():
         bomb_dict = Counter(bomb_lst)
         bomb_lst = sorted(bomb_dict.items(), key=lambda kv: kv[1])
 
-        best_tile = bomb_lst[0][0]
-        best_tile_percent = bomb_lst[0][1] / len(h_border_tiles)
+
+        if len(bomb_lst) > 0:
+                best_tile = bomb_lst[0][0]
+                best_tile_percent = bomb_lst[0][1] / len(legal_combo_lst)
+        else:
+                n = random.randint(0, len(h_tiles)-1)
+                return h_tiles[n][0], h_tiles[n][1], False
 
         ####################################
         # NON BORDER BOMB ODDS #
@@ -429,10 +454,10 @@ def find_sections():
 
         base_prob = ((number_mines - marked_mines)/(len(h_border_tiles) + len(h_tiles)))
 
-        if best_tile_percent >= base_prob:
-            return bomb_lst[0][0][0], bomb_lst[0][0][1], False
+        if best_tile_percent <= base_prob:
+                return bomb_lst[0][0][0], bomb_lst[0][0][1], False
 
-        n = random.randint(0, len(h_tiles))
+        n = random.randint(0, len(h_tiles)-1)
         return h_tiles[n][0], h_tiles[n][1], False
 
 
@@ -453,13 +478,12 @@ def find_move(firstmove):
                     if [row, column] not in completed_tiles and [row, column] in searched and mines_locations[row][column] != 0:
                         move_row, move_column, flag = logic_calc(row, column)
                         if move_row != -1:
+                            print("logic")
+                            print(completed_tiles)
                             return move_row, move_column, flag
 
-        h_border_tiles = []
-        h_tiles = []
-        border_tiles = []
-
         move_row, move_column, flag = find_sections()
+        print("prob")
         return move_row, move_column, flag
 
 
@@ -523,6 +547,7 @@ if __name__ == "__main__":
                                         print("\nPlease enter size and number of mines in integers only!")
                                         continue
 
+                        # set number of marked mines
                         marked_mines = 0
 
                         # initiating the board
@@ -535,6 +560,9 @@ if __name__ == "__main__":
 
                         #question mark suspected tiles
                         questionMark = []
+
+                        # reset completed_tiles
+                        completed_tiles = []
 
                         # plant mines
                         minePlacer()
