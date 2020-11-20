@@ -21,7 +21,6 @@ class Minesweeper:
                 return
 
 
-
         # board layout
         def printBoard(self):
         
