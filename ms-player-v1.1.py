@@ -408,7 +408,7 @@ def find_sections():
                                         count += 1
 
                         # check if tile is legal
-                        if mines_locations[row][column] != count or count > (number_mines - marked_mines):
+                        if mines_locations[row][column] != count or len(combo) > (number_mines - marked_mines):
                                 legal = False
                                 break
 
