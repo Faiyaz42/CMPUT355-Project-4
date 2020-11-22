@@ -215,80 +215,108 @@ def gameCheck():
 ####################### PLAYER #######################
 ######################################################
 
-
-
+# Logic Calculations: 
+# at beginning of each turn, the player first attempts
+# to calculate logical moves, i.e., moves that are
+# certain to reveal a non-mine tile or mark a mine tile
+# INPUT: row, column: x, y coordinate of a particular tile
+# i.e., we are considering a particular tile and its
+# neighbours
+# RETURN: x, y coordinate (-1, -1) of no logical move can be 
+# made and bool value (True if a flag is to be placed, False otherwise)
 def logic_calc(row, column):
+        # tiles that have been flagged as mines
         flagged_tiles = []
+        # tiles that have not been flagged as mines
         unflagged_tiles = []
 
-        # up
-        if row > 0 and [row-1,column] not in searched:
-                if mines_locations[row-1][column] == 'F':
-                        flagged_tiles.append([row-1,column])
-                else:
-                        unflagged_tiles.append([row-1,column])
-        # down
-        if row < size-1  and [row+1,column] not in searched:
-                if mines_locations[row+1][column] == 'F':
-                        flagged_tiles.append([row+1,column])
-                else:
-                        unflagged_tiles.append([row+1,column])
-        # left
-        if column > 0 and [row,column-1] not in searched:
-                if mines_locations[row][column-1] == 'F':
-                        flagged_tiles.append([row,column-1])
-                else:
-                        unflagged_tiles.append([row,column-1])
-        # right
-        if column < size-1 and [row,column +1] not in searched:
-                if mines_locations[row][column +1] == 'F':
-                        flagged_tiles.append([row,column +1])
-                else:
-                        unflagged_tiles.append([row,column +1])
-        # top-left
-        if row > 0 and column > 0 and [row-1,column -1] not in searched:
-                if mines_locations[row-1][column -1] == 'F':
-                        flagged_tiles.append([row-1,column -1])
-                else:
-                        unflagged_tiles.append([row-1,column -1])
-        # top-right
-        if row > 0 and column < size-1 and [row-1,column+1] not in searched:
-                if mines_locations[row-1][column+1] == 'F':
-                        flagged_tiles.append([row-1,column+1])
-                else:
-                        unflagged_tiles.append([row-1,column+1])
-        # below-left
-        if row < size -1 and column > 0 and [row+1,column-1] not in searched:
-                if mines_locations[row+1][column-1] == 'F':
-                        flagged_tiles.append([row+1,column-1])
-                else:
-                        unflagged_tiles.append([row+1,column-1])
-        # below-right
-        if row < size-1 and column < size -1 and [row+1,column +1] not in searched:
-                if mines_locations[row+1][column +1] == 'F':
-                        flagged_tiles.append([row+1,column +1])
-                else:
-                        unflagged_tiles.append([row+1,column +1])
+        # for the position [row, column], we are checking
+        # the conditions that each neighbour:
+        # a) is valid 
+        # b) has not already been searched/revealed
+        # upon passing these conditions, the neighbour is 
+        # either added to flagged_tiles or unflagged_tiles
+        # depending on its quality
 
-    #Rule 1
-    #If a tile has has same amount of hidden tiles around it as unflagged bombs remaining around it then all the hidden tiles are bombs
+        # check upper neighbour 
+        if row > 0 and [row - 1, column] not in searched:
+                if mines_locations[row - 1][column] == 'F':
+                        flagged_tiles.append([row - 1, column])
+                else:
+                        unflagged_tiles.append([row - 1, column])
+        # check lower neighbour
+        if row < (size - 1)  and [row + 1, column] not in searched:
+                if mines_locations[row + 1][column] == 'F':
+                        flagged_tiles.append([row + 1, column])
+                else:
+                        unflagged_tiles.append([row + 1, column])
+        # check left neighbour
+        if column > 0 and [row, column - 1] not in searched:
+                if mines_locations[row][column - 1] == 'F':
+                        flagged_tiles.append([row, column - 1])
+                else:
+                        unflagged_tiles.append([row, column - 1])
+        # check right neighbour
+        if column < (size - 1) and [row, column + 1] not in searched:
+                if mines_locations[row][column + 1] == 'F':
+                        flagged_tiles.append([row, column + 1])
+                else:
+                        unflagged_tiles.append([row, column + 1])
+        # check upper-left neighbour
+        if row > 0 and column > 0 and [row-1, column - 1] not in searched:
+                if mines_locations[row - 1][column - 1] == 'F':
+                        flagged_tiles.append([row - 1, column - 1])
+                else:
+                        unflagged_tiles.append([row - 1, column - 1])
+        # check upper-right neighbour
+        if row > 0 and column < (size - 1) and [row - 1, column + 1] not in searched:
+                if mines_locations[row - 1][column + 1] == 'F':
+                        flagged_tiles.append([row - 1, column + 1])
+                else:
+                        unflagged_tiles.append([row - 1, column + 1])
+        # check lower-left neighbour
+        if row < (size - 1) and column > 0 and [row + 1, column - 1] not in searched:
+                if mines_locations[row + 1][column - 1] == 'F':
+                        flagged_tiles.append([row + 1, column - 1])
+                else:
+                        unflagged_tiles.append([row + 1, column - 1])
+        # check upper-right neighbour
+        if row < (size - 1) and column < (size - 1) and [row + 1, column + 1] not in searched:
+                if mines_locations[row + 1][column + 1] == 'F':
+                        flagged_tiles.append([row + 1, column + 1])
+                else:
+                        unflagged_tiles.append([row + 1, column + 1])
+
+    # Case 1:
+    # if a tile has has same amount of hidden tiles around it as unflagged 
+    # mines surrounding it, then all the hidden tiles are mines
+    # return: x, y coordinates of first unflagged neighbour as well as
+    # True boolean value associated with variable "flag" to indicate
+    # the next move is flagging this particular x, y coordinate
         if mines_locations[row][column] == (len(unflagged_tiles) + len(flagged_tiles)) and len(unflagged_tiles) > 0:
                 if len(unflagged_tiles) == 1:
                         completed_tiles.append([row,column])
                 return unflagged_tiles[0][0], unflagged_tiles[0][1], True
 
 
-    #Rule 2
-    #If a tile has the same amount of flags around it as the number on the square then all remaining hidden tiles around it are not bombs
+    # Case 2:
+    # if a tile has the same amount of flags around it as the number 
+    # value of the current tile, then all remaining hidden tiles are
+    # not mines
+    # return: x, y coordinates of first unflagged neighbour as well as
+    # False boolean value associated with variable "flag" to indicate
+    # the next move is revealing this particular x, y coordinate
         if mines_locations[row][column] == len(flagged_tiles) and len(unflagged_tiles) > 0:
                 if len(unflagged_tiles) == 1:
                         completed_tiles.append([row,column])
                 return unflagged_tiles[0][0], unflagged_tiles[0][1], False
 
+    # Note: if either Case 1 or Case 2 is fulfilled, the current tile is
+    # added to a list completed_tiles as all of its neighbours have been 
+    # identified, therefore, it no longer needs to be considered for future
+    # turns
 
-        """if len(unflagged_tiles) == 0:
-                completed_tiles.append([row,column])
-                return -1, -1, False"""
+    # if no logical move can be made, coordinates (-1, -1) are returned
         return -1, -1, False
 
 def find_sections():
