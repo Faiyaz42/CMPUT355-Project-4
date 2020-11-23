@@ -187,7 +187,7 @@ class Minesweeper:
                                         self.mines_locations[row][column] = '*'
 
 
-
+                                        
         # check game state
         def gameCheck(self):
 
