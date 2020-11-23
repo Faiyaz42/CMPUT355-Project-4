@@ -25,7 +25,7 @@ import operator
 # Minesweeper Layout
 size = 0
 board = []
-mines_locations=[]
+revealed_board=[]
 number_mines = 0
 marked_mines = 0
 searched = []
@@ -61,7 +61,7 @@ def printBoard():
                 for column in range(size):
 
 
-                        cell = cell + "|  " + str(mines_locations[row][column]) + "  "
+                        cell = cell + "|  " + str(revealed_board[row][column]) + "  "
                 print(cell + "|")
 
                 cell = "     "
@@ -150,7 +150,7 @@ def revealTile(row, column):
                 if board[row][column] == 0:
 
                         # reveal
-                        mines_locations[row][column] = board[row][column]
+                        revealed_board[row][column] = board[row][column]
 
                         # recursion to find neighbours
                         if row > 0:
@@ -172,7 +172,7 @@ def revealTile(row, column):
 
                 # if not 0
                 elif board[row][column] != 0:
-                        mines_locations[row][column] = board[row][column]
+                        revealed_board[row][column] = board[row][column]
 
 
 
@@ -182,7 +182,7 @@ def revealMines():
                 for column in range(size):
 
                         if board[row][column] == -1:
-                                mines_locations[row][column] = '*'
+                                revealed_board[row][column] = '*'
 
 
 
@@ -199,7 +199,7 @@ def gameCheck():
         for row in range(size):
                 for column in range(size):
                         #if revealed and not flagged and not sus
-                        if mines_locations[row][column] != ' ' and mines_locations[row][column] != 'F' and mines_locations[row][column] != '?':
+                        if revealed_board[row][column] != ' ' and revealed_board[row][column] != 'F' and revealed_board[row][column] != '?':
                                 revealed_numbers += 1   #increment revealed tiles
 
         # check if all non-mine tiles are found
@@ -224,6 +224,8 @@ def gameCheck():
 # neighbours
 # RETURN: x, y coordinate (-1, -1) of no logical move can be 
 # made and bool value (True if a flag is to be placed, False otherwise)
+# WHERE: searched is a list of "face-up" tiles and completed_tiles
+# is a list of tiles where all neighbours of tiles have been revealed
 def logic_calc(row, column):
         # tiles that have been flagged as mines
         flagged_tiles = []
@@ -240,49 +242,49 @@ def logic_calc(row, column):
 
         # check upper neighbour 
         if row > 0 and [row - 1, column] not in searched:
-                if mines_locations[row - 1][column] == 'F':
+                if revealed_board[row - 1][column] == 'F':
                         flagged_tiles.append([row - 1, column])
                 else:
                         unflagged_tiles.append([row - 1, column])
         # check lower neighbour
         if row < (size - 1)  and [row + 1, column] not in searched:
-                if mines_locations[row + 1][column] == 'F':
+                if revealed_board[row + 1][column] == 'F':
                         flagged_tiles.append([row + 1, column])
                 else:
                         unflagged_tiles.append([row + 1, column])
         # check left neighbour
         if column > 0 and [row, column - 1] not in searched:
-                if mines_locations[row][column - 1] == 'F':
+                if revealed_board[row][column - 1] == 'F':
                         flagged_tiles.append([row, column - 1])
                 else:
                         unflagged_tiles.append([row, column - 1])
         # check right neighbour
         if column < (size - 1) and [row, column + 1] not in searched:
-                if mines_locations[row][column + 1] == 'F':
+                if revealed_board[row][column + 1] == 'F':
                         flagged_tiles.append([row, column + 1])
                 else:
                         unflagged_tiles.append([row, column + 1])
         # check upper-left neighbour
         if row > 0 and column > 0 and [row-1, column - 1] not in searched:
-                if mines_locations[row - 1][column - 1] == 'F':
+                if revealed_board[row - 1][column - 1] == 'F':
                         flagged_tiles.append([row - 1, column - 1])
                 else:
                         unflagged_tiles.append([row - 1, column - 1])
         # check upper-right neighbour
         if row > 0 and column < (size - 1) and [row - 1, column + 1] not in searched:
-                if mines_locations[row - 1][column + 1] == 'F':
+                if revealed_board[row - 1][column + 1] == 'F':
                         flagged_tiles.append([row - 1, column + 1])
                 else:
                         unflagged_tiles.append([row - 1, column + 1])
         # check lower-left neighbour
         if row < (size - 1) and column > 0 and [row + 1, column - 1] not in searched:
-                if mines_locations[row + 1][column - 1] == 'F':
+                if revealed_board[row + 1][column - 1] == 'F':
                         flagged_tiles.append([row + 1, column - 1])
                 else:
                         unflagged_tiles.append([row + 1, column - 1])
         # check upper-right neighbour
         if row < (size - 1) and column < (size - 1) and [row + 1, column + 1] not in searched:
-                if mines_locations[row + 1][column + 1] == 'F':
+                if revealed_board[row + 1][column + 1] == 'F':
                         flagged_tiles.append([row + 1, column + 1])
                 else:
                         unflagged_tiles.append([row + 1, column + 1])
@@ -293,7 +295,7 @@ def logic_calc(row, column):
     # return: x, y coordinates of first unflagged neighbour as well as
     # True boolean value associated with variable "flag" to indicate
     # the next move is flagging this particular x, y coordinate
-        if mines_locations[row][column] == (len(unflagged_tiles) + len(flagged_tiles)) and len(unflagged_tiles) > 0:
+        if revealed_board[row][column] == (len(unflagged_tiles) + len(flagged_tiles)) and len(unflagged_tiles) > 0:
                 if len(unflagged_tiles) == 1:
                         completed_tiles.append([row,column])
                 return unflagged_tiles[0][0], unflagged_tiles[0][1], True
@@ -306,7 +308,7 @@ def logic_calc(row, column):
     # return: x, y coordinates of first unflagged neighbour as well as
     # False boolean value associated with variable "flag" to indicate
     # the next move is revealing this particular x, y coordinate
-        if mines_locations[row][column] == len(flagged_tiles) and len(unflagged_tiles) > 0:
+        if revealed_board[row][column] == len(flagged_tiles) and len(unflagged_tiles) > 0:
                 if len(unflagged_tiles) == 1:
                         completed_tiles.append([row,column])
                 return unflagged_tiles[0][0], unflagged_tiles[0][1], False
@@ -319,129 +321,146 @@ def logic_calc(row, column):
     # if no logical move can be made, coordinates (-1, -1) are returned
         return -1, -1, False
 
+# Find Sections:
+# 1) divides the board into lists that define its particular sections 
+# 2) calculates all possible configurations of mines on hidden border tiles
+# 3) calculates all legal configurations of mines on hidden border tiles
 def find_sections():
 
-        h_border_tiles = []
-        h_tiles = []
-        border_tiles = []
+        hidden_border_tiles = []
+        hidden_exterior_tiles = []
+        edge_tiles = []
 
         for row in range(size):
                 for column in range(size):
-                        #find all border tiles
-                        if [row, column] not in completed_tiles and [row, column] in searched and mines_locations[row][column] != 0:
-                                border_tiles.append([row, column])
-                                # find all hidden bording tiles (not including flagged tiles)
-                                # up
-                                if row > 0 and [row-1,column] not in searched:
-                                        if mines_locations[row-1][column] != 'F' and [row-1,column] not in h_border_tiles:
-                                                h_border_tiles.append([row-1,column])
-                                # down
-                                if row < size-1  and [row+1,column] not in searched:
-                                        if mines_locations[row+1][column] != 'F' and [row+1,column] not in h_border_tiles:
-                                                h_border_tiles.append([row+1,column])
-                                # left
-                                if column > 0 and [row,column-1] not in searched:
-                                        if mines_locations[row][column-1] != 'F' and [row,column-1] not in h_border_tiles:
-                                                h_border_tiles.append([row,column-1])
-                                # right
-                                if column < size-1 and [row,column +1] not in searched:
-                                        if mines_locations[row][column +1] != 'F' and [row,column +1] not in h_border_tiles:
-                                                h_border_tiles.append([row,column +1])
-                                # top-left
-                                if row > 0 and column > 0 and [row-1,column -1] not in searched:
-                                        if mines_locations[row-1][column -1] != 'F' and [row-1,column -1] not in h_border_tiles:
-                                                h_border_tiles.append([row-1,column -1])
-                                # top-right
-                                if row > 0 and column < size-1 and [row-1,column+1] not in searched:
-                                        if mines_locations[row-1][column+1] != 'F' and [row-1,column+1] not in h_border_tiles:
-                                                h_border_tiles.append([row-1,column+1])
-                                # below-left
-                                if row < size -1 and column > 0 and [row+1,column-1] not in searched:
-                                        if mines_locations[row+1][column-1] != 'F' and [row+1,column-1] not in h_border_tiles:
-                                                h_border_tiles.append([row+1,column-1])
-                                # below-right
-                                if row < size-1 and column < size -1 and [row+1,column +1] not in searched:
-                                        if mines_locations[row+1][column +1] != 'F' and [row+1,column +1] not in h_border_tiles:
-                                                h_border_tiles.append([row+1,column +1])
+                        # find all edge tiles, i.e., revealed tiles that
+                        # have unknown neighbours
+                        if [row, column] not in completed_tiles and [row, column] in searched and revealed_board[row][column] != 0:
+                                edge_tiles.append([row, column])
+                                # find all hidden tiles that border the
+                                # edge tiles (not including flagged tiles)
+                                # check upper neighbour
+                                if row > 0 and [row - 1, column] not in searched:
+                                        if revealed_board[row - 1][column] != 'F' and [row - 1, column] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row - 1, column])
+                                # check lower neighbour
+                                if row < (size - 1)  and [row + 1, column] not in searched:
+                                        if revealed_board[row + 1][column] != 'F' and [row + 1,column] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row + 1, column])
+                                # check left neighbour
+                                if column > 0 and [row, column - 1] not in searched:
+                                        if revealed_board[row][column - 1] != 'F' and [row, column - 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row, column - 1])
+                                # check right neighbour
+                                if column < (size - 1) and [row, column + 1] not in searched:
+                                        if revealed_board[row][column + 1] != 'F' and [row, column + 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row, column + 1])
+                                # check upper-left neighbour
+                                if row > 0 and (column > 0) and [row - 1, column - 1] not in searched:
+                                        if revealed_board[row - 1][column - 1] != 'F' and [row - 1, column - 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row - 1, column - 1])
+                                # check upper-right neighbour
+                                if row > 0 and column < (size - 1) and [row - 1, column + 1] not in searched:
+                                        if revealed_board[row - 1][column + 1] != 'F' and [row - 1, column + 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row - 1, column + 1])
+                                # check lower-left neighbour
+                                if row < (size - 1) and column > 0 and [row + 1, column - 1] not in searched:
+                                        if revealed_board[row + 1][column - 1] != 'F' and [row + 1, column - 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row + 1, column - 1])
+                                # check lower-right neighbour
+                                if row < (size - 1) and column < (size - 1) and [row + 1, column + 1] not in searched:
+                                        if revealed_board[row + 1][column + 1] != 'F' and [row + 1, column + 1] not in hidden_border_tiles:
+                                                hidden_border_tiles.append([row + 1, column + 1])
 
-        #find all non-border hidden tiles
+        # find all non-border hidden tiles
         for row in range(size):
                 for column in range(size):
-                        if [row, column] not in searched and [row, column] not in h_border_tiles and mines_locations[row][column] != 'F':
-                                h_tiles.append([row, column])
+                        if [row, column] not in searched and [row, column] not in hidden_border_tiles and revealed_board[row][column] != 'F':
+                                hidden_exterior_tiles.append([row, column])
 
 
         ##################################
         # THIS IS THE PLACE TO SEGRAGATE #
         ##################################
+        
+        # calculates the high end of mines that may be surrounding
+        # the edge tiles before generating all possible configurations
+        # of mines on the hidden border tiles (ranging from all configurations
+        # of one mine to all configurations of maximum_mines)
+        # WHERE: mine_config is a list of configurations for a particular range
+        # and all_possible_mine_config is a complete list of all possible
+        # mine configurations
+        maximum_mines = 0
 
-        guess_mines = 0
+        for n in edge_tiles:
+            maximum_mines += revealed_board[n[0]][n[1]]
 
-        for n in border_tiles:
-            guess_mines += mines_locations[n[0]][n[1]]
+        all_possible_mine_config = []
 
-        full_combo_lst = []
-
-        #for n in range(1,len(h_border_tiles)+1):
-        for n in range(1,guess_mines+1):
-                combo_lst = list(itertools.combinations(h_border_tiles, n))
+        for n in range(1, (maximum_mines + 1)):
+                mine_config = list(itertools.combinations(hidden_border_tiles, n))
                 
-                for i in combo_lst:
-                        full_combo_lst.append(i)
+                for i in mine_config:
+                        all_possible_mine_config.append(i)
 
 
         ####################################
         # CHECK LEGAL #
         ####################################
+        # for each configuration, for each edge tile, increases mine count if 
+        # a) its hidden neighbour is marked as a mine or 
+        # b) its hidden neighbour belongs to the possible configuration of mine placement
+        # if the revealed board value of the tile is equal to the mine count,
+        # it is a legal configuration and appended to a list 
 
-        legal_combo_lst = []
+        legal_configurations = []
 
-        for combo in full_combo_lst:
+        for configuration in all_possible_mine_config:
                 legal = True
-                for tile in border_tiles:
+                for tile in edge_tiles:
                         row = tile[0]
                         column = tile[1]
                         count = 0
-                        # up
-                        if row > 0 and [row-1,column] not in searched:
-                                if mines_locations[row-1][column] == 'F' or [row-1,column] in combo:
+                        # check upper neighbour
+                        if row > 0 and [row - 1, column] not in searched:
+                                if revealed_board[row - 1][column] == 'F' or [row - 1, column] in configuration:
                                         count += 1
-                        # down
-                        if row < size-1  and [row+1,column] not in searched:
-                                if mines_locations[row+1][column] == 'F' or [row+1,column] in combo:
+                        # check lower neighbour
+                        if row < (size - 1)  and [row + 1, column] not in searched:
+                                if revealed_board[row + 1][column] == 'F' or [row + 1, column] in configuration:
                                         count += 1
-                        # left
-                        if column > 0 and [row,column-1] not in searched:
-                                if mines_locations[row][column-1] == 'F' or [row,column-1] in combo:
+                        # check left neighbour
+                        if column > 0 and [row, column - 1] not in searched:
+                                if revealed_board[row][column - 1] == 'F' or [row, column - 1] in configuration:
                                         count += 1
-                        # right
-                        if column < size-1 and [row,column +1] not in searched:
-                                if mines_locations[row][column +1] == 'F' or [row,column +1] in combo:
+                        # check right neighbour
+                        if column < (size - 1) and [row, column + 1] not in searched:
+                                if revealed_board[row][column + 1] == 'F' or [row, column + 1] in configuration:
                                         count += 1
-                        # top-left
-                        if row > 0 and column > 0 and [row-1,column -1] not in searched:
-                                if mines_locations[row-1][column -1] == 'F' or [row-1,column -1] in combo:
+                        # check upper-left neighbour
+                        if row > 0 and column > 0 and [row - 1, column - 1] not in searched:
+                                if revealed_board[row - 1][column - 1] == 'F' or [row - 1, column - 1] in configuration:
                                         count += 1
-                        # top-right
-                        if row > 0 and column < size-1 and [row-1,column+1] not in searched:
-                                if mines_locations[row-1][column+1] == 'F' or [row-1,column+1] in combo:
+                        # check upper-right neighbour
+                        if row > 0 and column < (size - 1) and [row - 1, column + 1] not in searched:
+                                if revealed_board[row - 1][column + 1] == 'F' or [row - 1, column + 1] in configuration:
                                         count += 1
-                        # below-left
-                        if row < size -1 and column > 0 and [row+1,column-1] not in searched:
-                                if mines_locations[row+1][column-1] == 'F' or [row+1,column-1] in combo:
+                        # check lower-left neighbour
+                        if row < (size - 1) and column > 0 and [row + 1, column - 1] not in searched:
+                                if revealed_board[row + 1][column - 1] == 'F' or [row + 1, column - 1] in configuration:
                                         count += 1
-                        # below-right
-                        if row < size-1 and column < size -1 and [row+1,column +1] not in searched:
-                                if mines_locations[row+1][column +1] == 'F' or [row+1,column +1] in combo:
+                        # check lower-right neighbour
+                        if row < (size - 1) and column < (size - 1) and [row + 1, column + 1] not in searched:
+                                if revealed_board[row + 1][column + 1] == 'F' or [row + 1, column + 1] in configuration:
                                         count += 1
 
                         # check if tile is legal
-                        if mines_locations[row][column] != count or len(combo) > (number_mines - marked_mines):
+                        if revealed_board[row][column] != count or len(configuration) > (number_mines - marked_mines):
                                 legal = False
                                 break
 
                 if legal:
-                        legal_combo_lst.append(combo)
+                        legal_configurations.append(configuration)
 
         ####################################
         # COUNT BOMBS #
@@ -450,18 +469,18 @@ def find_sections():
         # first check if any places there are no bombs
         bomb_lst = []
 
-        for tiles in legal_combo_lst:
+        for tiles in legal_configurations:
                 for tile in tiles:
                     bomb_lst.append(tile)
 
-        for tile in h_border_tiles:
+        for tile in hidden_border_tiles:
             if tile not in bomb_lst:
                 return tile[0], tile[1], False
 
         # if all places have a chance to have a bomb then sort by lowest chance
         bomb_lst = []
 
-        for tiles in legal_combo_lst:
+        for tiles in legal_configurations:
                 for tile in tiles:
                         tile = tuple(tile)
                         bomb_lst.append(tile)
@@ -471,22 +490,22 @@ def find_sections():
 
         if len(bomb_lst) > 0:
                 best_tile = bomb_lst[0][0]
-                best_tile_percent = bomb_lst[0][1] / len(legal_combo_lst)
+                best_tile_percent = bomb_lst[0][1] / len(legal_configurations)
         else:
-                n = random.randint(0, len(h_border_tiles)-1)
-                return h_border_tiles[n][0], h_border_tiles[n][1], False
+                n = random.randint(0, len(hidden_border_tiles)-1)
+                return hidden_border_tiles[n][0], hidden_border_tiles[n][1], False
 
         ####################################
         # NON BORDER BOMB ODDS #
         ####################################
 
-        base_prob = ((number_mines - marked_mines)/(len(h_border_tiles) + len(h_tiles)))
+        base_prob = ((number_mines - marked_mines)/(len(hidden_border_tiles) + len(hidden_exterior_tiles)))
 
         if best_tile_percent <= base_prob:
                 return bomb_lst[0][0][0], bomb_lst[0][0][1], False
 
-        n = random.randint(0, len(h_tiles)-1)
-        return h_tiles[n][0], h_tiles[n][1], False
+        n = random.randint(0, len(hidden_exterior_tiles)-1)
+        return hidden_exterior_tiles[n][0], hidden_exterior_tiles[n][1], False
 
 
 
@@ -503,7 +522,7 @@ def find_move(firstmove):
 
         for row in range(size):
                 for column in range(size):
-                    if [row, column] not in completed_tiles and [row, column] in searched and mines_locations[row][column] != 0:
+                    if [row, column] not in completed_tiles and [row, column] in searched and revealed_board[row][column] != 0:
                         move_row, move_column, flag = logic_calc(row, column)
                         if move_row != -1:
                             print("logic")
@@ -524,39 +543,7 @@ if __name__ == "__main__":
         # instructions and board setup inputs
         welcome = "Welcome to Minesweeper"
         print (welcome.rjust(50, ' ' ))
-        """
-        integer = False
-        while integer == False:
-                try:
-                        size = int(input("\nEnter size of board: "))
-                        number_mines = int(input("\nEnter number of mines: "))
-                        integer = True
-                except ValueError:
-                        print("\nPlease enter size and number of mines in integers only!")
-                        continue
-
-
-        # initiating the board
-        board = [[0 for y in range(size)] for x in range(size)]
-        # initiating array for mines
-        mines_locations = [[' ' for y in range(size)] for x in range(size)]
-
-        # flagged tiles
-        flags = []
-
-        #question mark suspected tiles
-        questionMark = []
-
-        # plant mines
-        minePlacer()
-
-        # tile values
-        calcTile()
-
-        #timer start
-        start = time.time()
-        """
-
+ 
         play = True
         firstmove = True
 
@@ -581,7 +568,7 @@ if __name__ == "__main__":
                         # initiating the board
                         board = [[0 for y in range(size)] for x in range(size)]
                         # initiating array for mines
-                        mines_locations = [[' ' for y in range(size)] for x in range(size)]
+                        revealed_board = [[' ' for y in range(size)] for x in range(size)]
 
                         # flagged tiles
                         flags = []
@@ -612,175 +599,17 @@ if __name__ == "__main__":
                 row, column, flag = find_move(firstmove)
                 print("({}, {})".format(row, column))
                 firstmove = False
-                """
-                # Input from the user
-                move = input("\nInstructions:\n 1. Enter row and column to select the tile.Input format example: 1 2 \
-                \n 2. To flag a tile,enter flag after row and column.Input format example: 1 2 flag \
-                \n 3. To unflag a flagged tile,enter unflag after row and column.Input format example: 1 2 unflag \
-                \n 4. To sus a tile,enter sus after row and column.Input format example: 1 2 sus \
-                \n 5. To unsus a sus tile,enter unsus after row and column.Input format example: 1 2 unsus \
-                \n 6. Type r to reset current board. \
-                \n 7. Type q to quit. \
-                \nInput : ").split()
-                """
-                """
-                # quit game
-                if move[0] == 'q':
-                        play = False
 
-                # reset current board
-                if move[0] == 'r':
-                        searched.clear()
-                        flags.clear()
-                        questionMark.clear()
-                        firstmove = True
-                        continue
-
-                        '''
-                        mines_locations = [[' ' for y in range(size)] for x in range(size)]
-                        searched.clear()
-                        flags.clear()
-                        questionMark.clear()
-                        '''
-
-                # check if numerical input or not
-                if len(move) == 2:
-                        try:
-                                tile = [int(item) for item in move]
-                        except ValueError:
-                                print("\nPlease enter row and column numbers in integers only!")
-                                continue
-
-
-                # input with flag/unflag or sus/unsus
-                elif len(move) == 3:
-                        if  move[2] != 'flag' and move[2] != 'unflag' and move[2] != 'sus' and move[2] != 'unsus':
-                                print("\nthird command flag,unflag,sus or unsus only!")
-                                continue
-
-
-
-                        # check if first 2 inputs integers or not
-                        try:
-
-                                tile = [int(item) for item in move[:2]]
-                                mark = move[2]
-                        except ValueError:
-                                print("\nPlease enter row and column numbers in integers only!")
-                                continue
-
-
-
-
-
-
-                        #check if input is in range
-                        if tile[0] > size or tile[0] < 1 or tile[1] > size or tile[1] < 1:
-                                print("\nposition out of range,must be a location on the board!")
-                                continue
-
-
-                        row = tile[0]-1
-                        column = tile[1]-1
-
-                        #dont flag already flagged tile
-                        if [row, column] in flags and mark != 'unflag':
-                                print("\nAlready flagged.\nUnflag first to sus.")
-                                continue
-
-
-
-                        # if already revealed
-                        #if mines_locations[row][column] != ' ' and mark != 'unflag' and mark != 'unsus':
-                                #print("\nValue already known")
-                                #continue
-
-
-                        #dont sus already sus tile
-                        if [row, column] in questionMark and mark != 'unsus':
-                                print("\nAlready sus.\nUnsus first to flag.")
-                                continue
-
-                        # if already revealed
-                        if mines_locations[row][column] != ' ' and mines_locations[row][column] != '?' and mines_locations[row][column] != 'F':
-                                print("\nValue already known")
-                                continue
-
-
-                        if [row, column] in questionMark and mark == 'unsus' :
-                                print("\nUnsus tile")
-                                mines_locations[row][column] = ' '
-                                for item in questionMark:
-                                        i = 0
-                                        if item[i] == row:
-                                                if item[i+1] == column:
-                                                        questionMark.remove([row,column])
-
-
-                        if mark == 'sus' and [row, column] not in flags:
-                                questionMark.append([row, column])
-                                mines_locations[row][column] = '?'
-                                print("\nSus tile")
-
-
-
-                        if [row, column] in flags and mark == 'unflag' :
-                                print("\nUnflagged tile")
-                                mines_locations[row][column] = ' '
-                                for item in flags:
-                                        i = 0
-                                        if item[i] == row:
-                                                if item[i+1] == column:
-                                                        flags.remove([row,column])
-                                                        marked_mines -= 1
-
-
-
-                        # check to make sure number of flags = bombs
-                        if len(flags) < number_mines :
-
-                                if mark == 'flag' and [row, column] not in questionMark:
-                                        flags.append([row, column])
-                                        mines_locations[row][column] = 'F'
-                                        marked_mines += 1
-                                        print("\nFlagged tile")
-                                continue
-                        else:
-                                if mark != 'sus' and mark != 'unsus':
-                                        print("\nNo more flags.Number of flags = Number of mines!")
-                                continue
-
-                else:
-
-                        if move[0] != 'r' and move[0] != 'q':
-                                print("\nInvalid input")
-                        continue
-
-
-
-
-
-
-                #check if input is in range
-                if tile[0] > size or tile[0] < 1 or tile[1] > size or tile[1] < 1:
-                        print("\nposition out of range,must be a location on board!")
-                        continue
-
-
-                row = tile[0]-1
-                column = tile[1]-1
-
-                """
                 if flag:
                         flags.append([row, column])
-                        mines_locations[row][column] = 'F'
+                        revealed_board[row][column] = 'F'
                         marked_mines += 1
                         continue
 
                 # if stepped on mine,game over
                 if board[row][column] == -1:
 
-                        mines_locations[row][column] = '*'
+                        revealed_board[row][column] = '*'
                         revealMines()
                         printBoard()
 
@@ -806,7 +635,7 @@ if __name__ == "__main__":
 
                 # no mines in neighbouring cells,reveal neighbours
                 elif board[row][column] == 0:
-                        mines_locations[row][column] = '0'
+                        revealed_board[row][column] = '0'
                         #searched = []
 
                         revealTile(row, column)
@@ -814,7 +643,7 @@ if __name__ == "__main__":
                 # if theres a mine in neighbouring cells
                 else:
                         searched.append([row,column])
-                        mines_locations[row][column] = board[row][column]
+                        revealed_board[row][column] = board[row][column]
 
                 # check game state
                 if(gameCheck()):
@@ -841,12 +670,3 @@ if __name__ == "__main__":
                         flags.clear()
                         questionMark.clear()
                         firstmove = True
-
-
-        '''
-        # end timer
-        end = time.time()
-
-        # print(end - start) #exact time in floating point
-        print("\nTimespent = %d second(s)" %round(end - start))
-        '''
