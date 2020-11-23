@@ -2,6 +2,6 @@
 ***
 # Minesweeper + Player
 
-Team name : " "
+# Team name : BEFHK
 ***
 
