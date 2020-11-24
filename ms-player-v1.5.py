@@ -490,6 +490,8 @@ def find_sections():
         # if all hidden border tiles have the potential to be a mine 
         # then sort by lowest chance. Dictionary counts and sorts
         # by repetition
+        # Counter() creates values like ([x, y], s) where s is the 
+        # number of times the tile [x, y] appeared in possible_mine_locations
         possible_mine_locations = []
 
         for configuration in legal_configurations:
@@ -497,10 +499,10 @@ def find_sections():
                         tile = tuple(tile)
                         possible_mine_locations.append(tile)
         mine_dict = Counter(possible_mine_locations)
-        possible_mine_locations = sorted(mine_dict.items(), key=lambda kv: kv[1])
+        possible_mine_locations = sorted(mine_dict.items(), key = lambda tileCount: tileCount[1])
 
         # if no potential mine placements can be discerned, a random
-        # hidden border tile is played
+        # hidden border tile is played 
         if len(possible_mine_locations) > 0:
                 best_tile = possible_mine_locations[0][0]
                 best_tile_percent = possible_mine_locations[0][1] / len(legal_configurations)
@@ -527,26 +529,34 @@ def find_sections():
 
 
 
-
+# includes instructions for first randomized move. After first move,
+# first checks if a logical move can be made, then moves on to call
+# find_sections() which returns a probable move
+# INPUT: firstmove (BOOL)
+# RETURN: move_row (INT) x value of next move, move_column (INT) y 
+# value of next move and, flag (BOOL) indicates whether a tile will
+# be flagged (True) or revealed (False)
 def find_move(firstmove):
 
+        # first move, player simply selects a random tile
         if firstmove:
-                j = random.randint(0, size*size-1)
+                j = random.randint(0, (size * size) - 1)
                 column = j % size
                 row = j // size
                 return row, column, False
 
+        # player first checks if it can make a logical move
+        # if return value of logic_calc() is -1, no logical move
+        # can be made, and player instead moves on to make probable move
         for row in range(size):
                 for column in range(size):
                     if [row, column] not in completed_tiles and [row, column] in searched and revealed_board[row][column] != 0:
                         move_row, move_column, flag = logic_calc(row, column)
                         if move_row != -1:
-                            print("logic")
-                            print(completed_tiles)
                             return move_row, move_column, flag
 
+        #find_sections() calculates probable move
         move_row, move_column, flag = find_sections()
-        print("prob")
         return move_row, move_column, flag
 
 
@@ -568,12 +578,12 @@ if __name__ == "__main__":
 
                 # initiating board if it is the first move of play
                 if firstmove:
-                        integer = False
-                        while integer == False:
+                        integer_input = False
+                        while integer_input == False:
                                 try:
                                         size = int(input("\nEnter size of board: "))
                                         number_mines = int(input("\nEnter number of mines: "))
-                                        integer = True
+                                        integer_input = True
                                 except ValueError:
                                         print("\nPlease enter size and number of mines in integers only!")
                                         continue
