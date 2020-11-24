@@ -325,6 +325,12 @@ def logic_calc(row, column):
 # 1) divides the board into lists that define its particular sections 
 # 2) calculates all possible configurations of mines on hidden border tiles
 # 3) calculates all legal configurations of mines on hidden border tiles
+# 4) calculates the probability of each hidden tile being a mine
+# RETURNS: What will be played, namely, 
+# a) INT value: the row to be played
+# b) INT value: the column to be played
+# c) BOOL value indicating True: that the tile will be flagged and 
+# False: that the tile will be revealed
 def find_sections():
 
         hidden_border_tiles = []
@@ -466,45 +472,55 @@ def find_sections():
         # COUNT BOMBS #
         ####################################
 
-        # first check if any places there are no bombs
-        bomb_lst = []
+        possible_mine_locations = []
 
-        for tiles in legal_configurations:
-                for tile in tiles:
-                    bomb_lst.append(tile)
+        # from every legal configuration, create a list of positions
+        # where the mine(s) could possibly be
 
+        for configuration in legal_configurations:
+                for tile in configuration:
+                    possible_mine_locations.append(tile)
+
+        # if any hidden border tiles have no chance of being a mine,
+        # play that move
         for tile in hidden_border_tiles:
-            if tile not in bomb_lst:
+            if tile not in possible_mine_locations:
                 return tile[0], tile[1], False
 
-        # if all places have a chance to have a bomb then sort by lowest chance
-        bomb_lst = []
+        # if all hidden border tiles have the potential to be a mine 
+        # then sort by lowest chance. Dictionary counts and sorts
+        # by repetition
+        possible_mine_locations = []
 
-        for tiles in legal_configurations:
-                for tile in tiles:
+        for configuration in legal_configurations:
+                for tile in configuration:
                         tile = tuple(tile)
-                        bomb_lst.append(tile)
-        bomb_dict = Counter(bomb_lst)
-        bomb_lst = sorted(bomb_dict.items(), key=lambda kv: kv[1])
+                        possible_mine_locations.append(tile)
+        mine_dict = Counter(possible_mine_locations)
+        possible_mine_locations = sorted(mine_dict.items(), key=lambda kv: kv[1])
 
-
-        if len(bomb_lst) > 0:
-                best_tile = bomb_lst[0][0]
-                best_tile_percent = bomb_lst[0][1] / len(legal_configurations)
+        # if no potential mine placements can be discerned, a random
+        # hidden border tile is played
+        if len(possible_mine_locations) > 0:
+                best_tile = possible_mine_locations[0][0]
+                best_tile_percent = possible_mine_locations[0][1] / len(legal_configurations)
         else:
-                n = random.randint(0, len(hidden_border_tiles)-1)
+                n = random.randint(0, len(hidden_border_tiles) - 1)
                 return hidden_border_tiles[n][0], hidden_border_tiles[n][1], False
 
         ####################################
         # NON BORDER BOMB ODDS #
         ####################################
 
-        base_prob = ((number_mines - marked_mines)/(len(hidden_border_tiles) + len(hidden_exterior_tiles)))
+        base_prob = ((number_mines - marked_mines) / (len(hidden_border_tiles) + len(hidden_exterior_tiles)))
 
+        # the lowest probability tile is played from potential mines
         if best_tile_percent <= base_prob:
-                return bomb_lst[0][0][0], bomb_lst[0][0][1], False
+                return best_tile[0], best_tile[1], False
 
-        n = random.randint(0, len(hidden_exterior_tiles)-1)
+        # if the likelihood of the best tile being a mine is greater than 
+        # that of the base probability, a random exeterior tile is played
+        n = random.randint(0, len(hidden_exterior_tiles) - 1)
         return hidden_exterior_tiles[n][0], hidden_exterior_tiles[n][1], False
 
 
@@ -606,7 +622,7 @@ if __name__ == "__main__":
                         marked_mines += 1
                         continue
 
-                # if stepped on mine,game over
+                # if stepped on mine, game over
                 if board[row][column] == -1:
 
                         revealed_board[row][column] = '*'
