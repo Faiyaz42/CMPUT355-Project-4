@@ -1,10 +1,10 @@
 ####################################
-######author:Faiyaz Ahmed
+######Authors: Faiyaz Ahmed, Bryland Schoneck, Eden Knechtel, Hannan Ahmed, Kenny Ke
 ####################################
 
 
 ####################################
-# Sources:
+# Consulted Sources:
 # https://stackoverflow.com/questions/2600191/how-can-i-count-the-occurrences-of-a-list-item
 # https://stackoverflow.com/questions/104420/how-to-generate-all-permutations-of-a-list
 # https://luckytoilet.wordpress.com/2012/12/23/2125/
@@ -185,7 +185,6 @@ def revealMines():
 
                         if board[row][column] == -1:
                                 revealed_board[row][column] = '*'
-
 
 
 
@@ -390,27 +389,63 @@ def find_sections():
         ##################################
         # THIS IS THE PLACE TO SEGRAGATE #
         ##################################
+        ### CHANGE VARIABLE NAMES
+
+        visited = []
         
-        # calculates the high end of mines that may be surrounding
-        # the edge tiles before generating all possible configurations
-        # of mines on the hidden border tiles (ranging from all configurations
-        # of one mine to all configurations of maximum_mines)
-        # WHERE: mine_config is a list of configurations for a particular range
-        # and all_possible_mine_config is a complete list of all possible
-        # mine configurations
-        maximum_mines = 0
-
-        for n in edge_tiles:
-            maximum_mines += revealed_board[n[0]][n[1]]
-
-        all_possible_mine_config = []
-
-        for n in range(1, (maximum_mines + 1)):
-                mine_config = list(itertools.combinations(hidden_border_tiles, n))
+        segment_lst = []        
+        
+        for row in range(size):
+            for column in range(size):
+                if [row, column] in hidden_border_tiles and [row, column] not in visited:
                 
-                for i in mine_config:
-                        all_possible_mine_config.append(i)
-
+                    queue = [[row, column]]
+                    
+                    edge_temp_lst = []
+                            
+                    while queue:
+                
+                        space = queue.pop(0)   
+                        if space in hidden_border_tiles and space not in visited:
+                            visited.append(space)
+                            edge_temp_lst.append(space)
+                        
+                            row = space[0]
+                            column = space[1]
+    
+                            # up
+                            if row > 0 and [row-1,column] not in visited and [row-1,column] in hidden_border_tiles:
+                                queue.append([row-1,column])
+    
+                            # down
+                            if row < size-1  and [row+1,column] not in visited and [row+1,column] in hidden_border_tiles:
+                                queue.append([row+1,column])                            
+    
+                            # left
+                            if column > 0 and [row,column-1] not in visited and [row,column-1] in hidden_border_tiles:
+                                queue.append([row,column-1])
+    
+                            # right
+                            if column < size-1 and [row,column +1] not in visited and [row,column+1] in hidden_border_tiles:
+                                queue.append([row,column+1])
+    
+                            # top-left
+                            if row > 0 and column > 0 and [row-1,column -1] not in visited and [row-1,column-1] in hidden_border_tiles:
+                                queue.append([row-1,column-1])
+    
+                            # top-right
+                            if row > 0 and column < size-1 and [row-1,column+1] not in visited and [row-1,column+1] in hidden_border_tiles:
+                                queue.append([row-1,column+1])
+    
+                            # below-left
+                            if row < size -1 and column > 0 and [row+1,column-1] not in visited and [row+1,column-1] in hidden_border_tiles:
+                                queue.append([row+1,column-1])
+    
+                            # below-right
+                            if row < size-1 and column < size -1 and [row+1,column +1] not in visited and [row+1,column+1] in hidden_border_tiles:
+                                queue.append([row+1,column+1])                        
+    
+                    segment_lst.append(edge_temp_lst)   
 
         ####################################
         # CHECK LEGAL #
@@ -421,54 +456,73 @@ def find_sections():
         # if the revealed board value of the tile is equal to the mine count,
         # it is a legal configuration and appended to a list 
 
+        # WHERE: mine_config is a list of configurations for a particular range
+        # and all_possible_mine_config is a complete list of all possible
+        # mine configurations per segment, and num_combo_lst is number of combinations per segment
+
         legal_configurations = []
+        num_combo_lst = []
 
-        for configuration in all_possible_mine_config:
-                legal = True
-                for tile in edge_tiles:
-                        row = tile[0]
-                        column = tile[1]
-                        count = 0
-                        # check upper neighbour
-                        if row > 0 and [row - 1, column] not in searched:
-                                if revealed_board[row - 1][column] == 'F' or [row - 1, column] in configuration:
-                                        count += 1
-                        # check lower neighbour
-                        if row < (size - 1)  and [row + 1, column] not in searched:
-                                if revealed_board[row + 1][column] == 'F' or [row + 1, column] in configuration:
-                                        count += 1
-                        # check left neighbour
-                        if column > 0 and [row, column - 1] not in searched:
-                                if revealed_board[row][column - 1] == 'F' or [row, column - 1] in configuration:
-                                        count += 1
-                        # check right neighbour
-                        if column < (size - 1) and [row, column + 1] not in searched:
-                                if revealed_board[row][column + 1] == 'F' or [row, column + 1] in configuration:
-                                        count += 1
-                        # check upper-left neighbour
-                        if row > 0 and column > 0 and [row - 1, column - 1] not in searched:
-                                if revealed_board[row - 1][column - 1] == 'F' or [row - 1, column - 1] in configuration:
-                                        count += 1
-                        # check upper-right neighbour
-                        if row > 0 and column < (size - 1) and [row - 1, column + 1] not in searched:
-                                if revealed_board[row - 1][column + 1] == 'F' or [row - 1, column + 1] in configuration:
-                                        count += 1
-                        # check lower-left neighbour
-                        if row < (size - 1) and column > 0 and [row + 1, column - 1] not in searched:
-                                if revealed_board[row + 1][column - 1] == 'F' or [row + 1, column - 1] in configuration:
-                                        count += 1
-                        # check lower-right neighbour
-                        if row < (size - 1) and column < (size - 1) and [row + 1, column + 1] not in searched:
-                                if revealed_board[row + 1][column + 1] == 'F' or [row + 1, column + 1] in configuration:
-                                        count += 1
+        for tiles in segment_lst:
+                hidden_temp_lst = []
+                edge_temp_lst = []
+                instance = 0
+                for tile in tiles:
+                        if tile in hidden_border_tiles:
+                                hidden_temp_lst.append(tile)
+                        else:
+                                edge_temp_lst.append(tile)
+                for j in range(1,len(hidden_temp_lst)+1):
+                        mine_config = list(itertools.combinations(hidden_temp_lst, j))
+                        for combo in mine_config:
+                                legal = True
+                                for tile in edge_temp_lst:
+                                                row = tile[0]
+                                                column = tile[1]
+                                                count = 0
+                                                # up
+                                                if row > 0 and [row-1,column] not in searched:
+                                                                if revealed_board[row-1][column] == 'F' or [row-1,column] in combo:
+                                                                                count += 1
+                                                # down
+                                                if row < size-1  and [row+1,column] not in searched:
+                                                                if revealed_board[row+1][column] == 'F' or [row+1,column] in combo:
+                                                                                count += 1
+                                                # left
+                                                if column > 0 and [row,column-1] not in searched:
+                                                                if revealed_board[row][column-1] == 'F' or [row,column-1] in combo:
+                                                                                count += 1
+                                                # right
+                                                if column < size-1 and [row,column +1] not in searched:
+                                                                if revealed_board[row][column +1] == 'F' or [row,column +1] in combo:
+                                                                                count += 1
+                                                # top-left
+                                                if row > 0 and column > 0 and [row-1,column -1] not in searched:
+                                                                if revealed_board[row-1][column -1] == 'F' or [row-1,column -1] in combo:
+                                                                                count += 1
+                                                # top-right
+                                                if row > 0 and column < size-1 and [row-1,column+1] not in searched:
+                                                                if revealed_board[row-1][column+1] == 'F' or [row-1,column+1] in combo:
+                                                                                count += 1
+                                                # below-left
+                                                if row < size -1 and column > 0 and [row+1,column-1] not in searched:
+                                                                if revealed_board[row+1][column-1] == 'F' or [row+1,column-1] in combo:
+                                                                                count += 1
+                                                # below-right
+                                                if row < size-1 and column < size -1 and [row+1,column +1] not in searched:
+                                                                if revealed_board[row+1][column +1] == 'F' or [row+1,column +1] in combo:
+                                                                                count += 1
 
-                        # check if tile is legal
-                        if revealed_board[row][column] != count or len(configuration) > (number_mines - marked_mines):
-                                legal = False
-                                break
+                                                # check if tile is legal
+                                                if revealed_board[row][column] != count or len(combo) > (number_mines - marked_mines):
+                                                                legal = False
+                                                                break
 
-                if legal:
-                        legal_configurations.append(configuration)
+                                if legal:
+                                                instance += 1
+                                                legal_configurations.append(combo) 
+
+                num_combo_lst.append(instance)
 
         ####################################
         # COUNT BOMBS #
@@ -525,10 +579,19 @@ def find_sections():
         # if no potential mine placements can be discerned, a random
         # hidden border tile is played 
         # otherwise, the tile with the lowest likelihood of being a 
-        # mine is calculated: safest_tile/ safest_tile_percent 
+        # mine is calculated: safest_tile/ safest_tile_percent
+        count = 0
+        num_combo = 1
+
         if len(possible_mine_locations) > 0:
                 safest_tile = possible_mine_locations[0][0]
-                safest_tile_percent = possible_mine_locations[0][1] / len(legal_configurations)
+                for seg in segment_lst: 
+                        if safest_tile not in seg:
+                                count += 1
+                        else:
+                                num_combo = num_combo_lst[count]
+                                continue
+                safest_tile_percent = possible_mine_locations[0][1] / num_combo
         else:
                 n = random.randint(0, len(hidden_border_tiles) - 1)
                 return hidden_border_tiles[n][0], hidden_border_tiles[n][1], False
