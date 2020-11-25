@@ -32,6 +32,8 @@ searched = []
 
 completed_tiles = []
 
+impossible_mine_locations = []
+certain_mine_locations = []
 
 #board layout
 def printBoard():
@@ -481,11 +483,30 @@ def find_sections():
                 for tile in configuration:
                     possible_mine_locations.append(tile)
 
-        # if any hidden border tiles have no chance of being a mine,
-        # play that move
+        # make list of hidden border tiles that NEVER appear in 
+        # possible mine locations
         for tile in hidden_border_tiles:
             if tile not in possible_mine_locations:
-                return tile[0], tile[1], False
+                impossible_mine_locations.append(tile)
+
+        # make list of hidden border tiles that ALWAYS appear in 
+        # possible mine locations
+        for tile in hidden_border_tiles:
+            in_every_config = True
+            for configuration in legal_configurations:
+                if tile not in configuration:
+                    in_every_config = False
+            if in_every_config == True:
+                certain_mine_locations.append(tile)
+
+        ## NEED if certain if impossible returns/pops
+        if certain_mine_locations:
+                tile = certain_mine_locations.pop(0)
+                return tile[0], tile[1], True
+
+        if impossible_mine_locations:
+                tile = impossible_mine_locations.pop(0)
+                return tile[0], tile[1], False 
 
         # if all hidden border tiles have the potential to be a mine 
         # then sort by lowest chance. Dictionary counts and sorts
@@ -621,10 +642,22 @@ if __name__ == "__main__":
                 printBoard()
 
                 # Input from Player
+                if not certain_mine_locations and not impossible_mine_locations:
+                        row, column, flag = find_move(firstmove)
+                        print("({}, {})".format(row, column))
+                        firstmove = False
 
-                row, column, flag = find_move(firstmove)
-                print("({}, {})".format(row, column))
-                firstmove = False
+                else:
+                        if certain_mine_locations:
+                                tile = certain_mine_locations.pop(0)
+                                row = tile[0]
+                                column = tile[1]
+                                flag = True
+                        else: 
+                                tile = impossible_mine_locations.pop(0)
+                                row = tile[0]
+                                column = tile[1]
+                                flag = False
 
                 if flag:
                         flags.append([row, column])
