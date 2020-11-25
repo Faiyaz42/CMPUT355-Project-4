@@ -524,9 +524,11 @@ def find_sections():
 
         # if no potential mine placements can be discerned, a random
         # hidden border tile is played 
+        # otherwise, the tile with the lowest likelihood of being a 
+        # mine is calculated: safest_tile/ safest_tile_percent 
         if len(possible_mine_locations) > 0:
-                best_tile = possible_mine_locations[0][0]
-                best_tile_percent = possible_mine_locations[0][1] / len(legal_configurations)
+                safest_tile = possible_mine_locations[0][0]
+                safest_tile_percent = possible_mine_locations[0][1] / len(legal_configurations)
         else:
                 n = random.randint(0, len(hidden_border_tiles) - 1)
                 return hidden_border_tiles[n][0], hidden_border_tiles[n][1], False
@@ -538,14 +540,16 @@ def find_sections():
         base_prob = ((number_mines - marked_mines) / (len(hidden_border_tiles) + len(hidden_exterior_tiles)))
 
         # the lowest probability tile is played from potential mines
-        if best_tile_percent <= base_prob:
-                return best_tile[0], best_tile[1], False
+        if safest_tile_percent <= base_prob:
+                return safest_tile[0], safest_tile[1], False
 
         # if the likelihood of the best tile being a mine is greater than 
         # that of the base probability, a random exeterior tile is played
-        n = random.randint(0, len(hidden_exterior_tiles) - 1)
-        return hidden_exterior_tiles[n][0], hidden_exterior_tiles[n][1], False
-
+        if len(hidden_exterior_tiles) > 0:
+                n = random.randint(0, len(hidden_exterior_tiles) - 1)
+                return hidden_exterior_tiles[n][0], hidden_exterior_tiles[n][1], False
+        else:
+                return safest_tile[0], safest_tile[1], False
 
 
 
