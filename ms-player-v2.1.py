@@ -657,17 +657,17 @@ if __name__ == "__main__":
         # instructions and board setup inputs
         welcome = "Welcome to Minesweeper"
         print (welcome.rjust(50, ' ' ))
- 
-        play = True
+
+        keepPlaying = True
         firstmove = True
 
-        #game
-        while play:
+        # game
+        while keepPlaying:
 
                 # initiating board if it is the first move of play
                 if firstmove:
                         integer_input = False
-                        while integer_input == False:
+                        while not integer_input:
                                 try:
                                         size = int(input("\nEnter size of board: "))
                                         number_mines = int(input("\nEnter number of mines: "))
@@ -703,8 +703,7 @@ if __name__ == "__main__":
                         start = time.time()
 
                         # finished first move
-                        #firstmove = False
-
+                        # firstmove = False
 
                 printBoard()
 
@@ -749,9 +748,23 @@ if __name__ == "__main__":
                         # check if reset
                         replay = input("Would you like to play again (y/n): ")
 
-                        # if no quit game
-                        if replay[0] == 'n':
-                                play = False
+                        while not (replay == 'n' or replay == 'y'):
+                                replay = input("Would you like to play again (y/n): ")
+                                print('\n\n')
+
+                        # if no , quit game
+                        if replay == 'n':
+                                keepPlaying = False
+                                firstmove = False
+                                board.clear()
+                                revealed_board.clear()
+                                completed_tiles.clear()                                
+                                size = 0
+                                number_mines = 0
+                                marked_mines = 0
+
+                        else:
+                                keepPlaying = True
 
                         # reset and firstmove to reinitiate board
                         searched.clear()
@@ -759,14 +772,13 @@ if __name__ == "__main__":
                         questionMark.clear()
                         firstmove = True
 
-                # no mines in neighbouring cells,reveal neighbours
+                # no mines in neighbouring cells, reveal neighbours
                 elif board[row][column] == 0:
                         revealed_board[row][column] = '0'
-                        #searched = []
-
+                        # searched = []
                         revealTile(row, column)
 
-                # if theres a mine in neighbouring cells
+                # if there is a mine in neighbouring cells
                 else:
                         searched.append([row,column])
                         revealed_board[row][column] = board[row][column]
@@ -780,16 +792,30 @@ if __name__ == "__main__":
                         # end timer
                         end = time.time()
 
-                        # print(end - start) #exact time in floating point
+                        # print(end - start) , exact time in floating point
                         print("\nTimespent = %d second(s)" %round(end - start))
                         print("\nYou won!!\n")
 
                         # check if reset
                         replay = input("Would you like to play again (y/n): ")
 
+                        while not (replay == 'n' or replay == 'y'):
+                                replay = input("Would you like to play again (y/n): ")       
+                                print('\n\n')
+
                         # if no quit game
-                        if replay[0] == 'n':
-                                play = False
+                        if replay == 'n':
+                                keepPlaying = False
+                                firstmove = False
+                                board.clear()
+                                revealed_board.clear()
+                                completed_tiles.clear()
+                                size = 0
+                                number_mines = 0
+                                marked_mines = 0
+
+                        else:
+                                keepPlaying = True
 
                         # reset and firstmove to reinitiate board
                         searched.clear()
