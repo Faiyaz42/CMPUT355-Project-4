@@ -74,7 +74,7 @@ class Minesweeper:
                                 cell = cell + "|_____"
                         print(cell + '|')
 
-                print("\n\n Number of remaining mines: ", (self.number_mines - self.marked_mines))
+                print("\n\nNumber of remaining mines: ", (self.number_mines - self.marked_mines))
 
 
 
@@ -657,12 +657,17 @@ if __name__ == "__main__":
         minesweeper = Minesweeper()
 
         # instructions and board setup inputs
-        welcome = "Welcome to Minesweeper"
+        welcome = "Welcome to Minesweeper Solver"
         print (welcome.rjust(50, ' ' ))
 
         keepPlaying = True
         firstmove = True
         replays = 0
+        Times = []
+        winTimes = []
+        lossTimes = []
+        Won = 0
+        Lost = 0
 
         # game
         while keepPlaying and replays > -1:
@@ -742,8 +747,10 @@ if __name__ == "__main__":
                         minesweeper.marked_mines += 1
                         continue
 
+                gamecheck = True
                 # if stepped on mine, game over
                 if minesweeper.board[row][column] == -1:
+                        gamecheck = False
 
                         minesweeper.revealed_board[row][column] = '*'
                         minesweeper.revealMines()
@@ -753,8 +760,12 @@ if __name__ == "__main__":
                         end = time.time()
 
                         # print(end - start) #exact time in floating point
-                        print("\nTimespent = %d second(s)" %round(end - start))
-                        print("\nGame over. Stepped on a mine!!!\n")
+                        Times.append(end - start)
+                        lossTimes.append(end - start)
+                        Lost += 1
+                        print("\nGame over.Stepped on a mine!!!")
+                        print("\nTimespent = %.5f second(s)\n" %round(end - start,5))
+                        
 
                         # check if reset
                         replays -= 1
@@ -791,7 +802,7 @@ if __name__ == "__main__":
                         minesweeper.revealed_board[row][column] = minesweeper.board[row][column]
 
                 # check game state
-                if minesweeper.gameCheck():
+                if minesweeper.gameCheck() and gamecheck == True:
 
                         minesweeper.revealMines()
                         minesweeper.printBoard()
@@ -800,8 +811,12 @@ if __name__ == "__main__":
                         end = time.time()
 
                         # print(end - start) , exact time in floating point
-                        print("\nTimespent = %d second(s)" %round(end - start))
-                        print("\nYou won!!\n")
+                        Times.append(end - start)
+                        winTimes.append(end - start)
+                        Won += 1                        
+                        print("\nCongratulations.You won!!!")
+                        print("\nTimespent = %.5f second(s)\n" %round(end - start,5))
+                        
 
                         # check if reset
                         replays -= 1
@@ -825,3 +840,16 @@ if __name__ == "__main__":
                         flags.clear()
                         questionMark.clear()
                         firstmove = True
+                        
+        print("\n\nRun Statistics:")
+        print("\nTotal time = %.5f second(s)" %sum(Times))
+        print("\nBest run time = %.5f second(s)" %min(Times))
+        if winTimes:
+                print("\nBest win time = %.5f second(s)" %min(winTimes))
+        if lossTimes:
+                print("\nBest loss time = %.5f second(s)" %min(lossTimes))
+        print("\nTotal games played = %d" %(Won+Lost))
+        print("\nGames won = %d" %(Won))
+        print("\nGames lost = %d" %(Lost))
+        print("\nPercentage of wins = %.2f" %round(Won / (Won+Lost) * 100, 2))
+        
