@@ -657,7 +657,7 @@ if __name__ == "__main__":
         minesweeper = Minesweeper()
 
         # instructions and board setup inputs
-        welcome = "Welcome to Minesweeper Solver"
+        welcome = "Welcome to Minesweeper Player"
         print (welcome.rjust(50, ' ' ))
 
         keepPlaying = True
